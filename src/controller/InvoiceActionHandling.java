@@ -50,12 +50,12 @@ public class InvoiceActionHandling implements ActionListener {
                 System.out.println("Delete Invoice");
                 DeleteInvoice();
                 break;
-            case "New Item":
-                System.out.println("New Item");
+            case "New Line":
+                System.out.println("New Line");
                 NewItem();
                 break;
-            case "Delete Item":
-                System.out.println("Delete Item");
+            case "Delete Line":
+                System.out.println("Delete Line");
                 DeleteLine();
                 break;
             case "Load File":
@@ -74,10 +74,10 @@ public class InvoiceActionHandling implements ActionListener {
                 NewInvoiceMessageCancel();
                 break;
 
-            case "NewItemCancel":
+            case "NewLineCancel":
                 NewItemMessageCancel();
                 break;
-            case "NewItemOK":
+            case "NewLineOK":
                 NewItemMessageOK();
 
         }
@@ -171,45 +171,41 @@ public class InvoiceActionHandling implements ActionListener {
             if (Result == JFileChooser.APPROVE_OPTION) {
                 File HeaderFile = fc.getSelectedFile();
                 Path HeaderPath = Paths.get(HeaderFile.getAbsolutePath());
-                List<String> invoicesLines = Files.readAllLines(HeaderPath);
-                ArrayList<Invoice> Invoices = new ArrayList<>();
-                for (String HeaderLine : invoicesLines) {
-                    String[] invoiceInfo = HeaderLine.split("@");
-
-                    String[] arr = invoiceInfo[0].split(",");
+                List<String> HeaderLines = Files.readAllLines(HeaderPath);
+                ArrayList<Invoice> InvoiceHeaders = new ArrayList<>();
+                for (String HeaderLine : HeaderLines) {
+                    String[] arr = HeaderLine.split(",");
                     String str1 = arr[0];
                     String str2 = arr[1];
                     String str3 = arr[2];
                     int code = Integer.parseInt(str1);
                     Date InvoiceDate = UiComponents.DateFormat.parse(str2);
                     Invoice header = new Invoice(code, str3, InvoiceDate);
-                    Invoices.add(header);
-                    if(invoiceInfo.length>1){
-                        String[] items = invoiceInfo[1].split("/");
-
-                        ArrayList<InvoiceItem> InvoiceItems = new ArrayList<>();
-                        for (String item : items) {
-                            String[] itemDetails = item.split(",");
-                            String itemNo = itemDetails[0];     // invoice number (int)
-                            String itemName = itemDetails[1];     // item name (String)
-                            String itemPrice = itemDetails[2];     // item price (double)
-                            String itemCount = itemDetails[3];     // count  (int)
-                            int InvoiceCode = Integer.parseInt(itemNo);
-                            double price = Double.parseDouble(itemPrice);
-                            int count = Integer.parseInt(itemCount);
-
-                            InvoiceItem line = new InvoiceItem(header, count, itemName, price);
-                            header.getLines().add(line);
-                        }
-
-                    }
-
-                    InvoiceTableModel HeaderTableModel = new InvoiceTableModel(Invoices);
-                    frame.setInvoiceTableModel(HeaderTableModel);
-                    frame.getInvoiceTable().setModel(HeaderTableModel);
+                    InvoiceHeaders.add(header);
                 }
-                frame.setInvoicesArray(Invoices);
-                InvoiceTableModel HeaderTableModel = new InvoiceTableModel(Invoices);
+                frame.setInvoicesArray(InvoiceHeaders);
+                Result = fc.showOpenDialog(frame);
+                if (Result == JFileChooser.APPROVE_OPTION) {
+                    File LineFile = fc.getSelectedFile();
+                    Path LinePath = Paths.get(LineFile.getAbsolutePath());
+                    List<String> LineLines = Files.readAllLines(LinePath);
+                    ArrayList<InvoiceItem> InvoiceLines = new ArrayList<>();
+                    for (String LineLine : LineLines) {
+                        String[] arr = LineLine.split(",");
+                        String str1 = arr[0];     // invoice number (int)
+                        String str2 = arr[1];     // item name (String)
+                        String str3 = arr[2];     // item price (double)
+                        String str4 = arr[3];     // count  (int)
+                        int InvoiceCode = Integer.parseInt(str1);
+                        double price = Double.parseDouble(str3);
+                        int count = Integer.parseInt(str4);
+                        Invoice inv = frame.getInvoiceObject(InvoiceCode);
+                        InvoiceItem line = new InvoiceItem(inv, count, str2, price);
+                        inv.getLines().add(line);
+                        //InvoiceLines.add(line);
+                    }
+                }
+                InvoiceTableModel HeaderTableModel = new InvoiceTableModel(InvoiceHeaders);
                 frame.setInvoiceTableModel(HeaderTableModel);
                 frame.getInvoiceTable().setModel(HeaderTableModel);
             }
@@ -233,20 +229,21 @@ public class InvoiceActionHandling implements ActionListener {
                 String lines = "";
                 for (Invoice invoice : SaveInvoicesArray) {
                     Headers += invoice.toString();
-                    if (invoice.getLines().size() > 0)
-                        Headers += '@';
+                    Headers += '\n';
 
                     for (InvoiceItem line : invoice.getLines()) {
                         lines += line.toString();
-                        lines += '/';
+                        lines += '\n';
                     }
-                    Headers+=lines;
-                    Headers += '\n';
 
                 }
+                res = fc.showSaveDialog(frame);
                 File LineSaveFile = fc.getSelectedFile();
+                FileWriter LineFW = new FileWriter(LineSaveFile);
                 HeaderFW.write(Headers);
+                LineFW.write(lines);
                 HeaderFW.close();
+                LineFW.close();
             }
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(frame, "The file you used is either invalid or missing", "Error", JOptionPane.ERROR_MESSAGE);
