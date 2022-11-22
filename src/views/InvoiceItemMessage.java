@@ -32,8 +32,8 @@ public class InvoiceItemMessage extends JDialog {
         OKButton = new JButton("OK");
         CancelButton = new JButton("Cancel");
 
-        OKButton.setActionCommand("NewItemOK");
-        CancelButton.setActionCommand("NewItemCancel");
+        OKButton.setActionCommand("NewLineOK");
+        CancelButton.setActionCommand("NewLineCancel");
         OKButton.addActionListener(frame.getHandle());
         CancelButton.addActionListener(frame.getHandle());
         setLayout(new GridLayout(4, 2));

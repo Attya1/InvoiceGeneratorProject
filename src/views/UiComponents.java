@@ -59,7 +59,7 @@ public class UiComponents extends javax.swing.JFrame{
 
         deleteInvoiceButton.setText("Delete Invoice");
 
-        newItemButton.setText("New Item");
+        newItemButton.setText("New Line");
         newItemButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 /*NewItemButtonActionPerformed(evt);*/
